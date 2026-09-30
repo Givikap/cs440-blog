@@ -2,7 +2,7 @@
 layout: post
 title: "There Is More to Internet Invariants Than Meets the Eye"
 date: 2026-09-29
-paper_authors: "Chris Misa, Walter Willinger, Ramakrishnan Durairajan, and Reza Rejaie"
+paper_authors: "C. Misa, W. Willinger, R. Durairajan, R. Rejaie"
 paper_venue: "NINeS 2026"
 paper_url: "https://drops.dagstuhl.de/storage/01oasics/oasics-vol139-nines2026/OASIcs.NINeS.2026.22/OASIcs.NINeS.2026.22.pdf"
 week: 1
