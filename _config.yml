@@ -10,6 +10,7 @@ plugins:
 # Build settings
 markdown: kramdown
 permalink: /:year/:month/:day/:title/
+future: true
 
 # Collections for organizing posts
 defaults:
