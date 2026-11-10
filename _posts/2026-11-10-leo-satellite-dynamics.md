@@ -1,0 +1,19 @@
+---
+layout: post
+title: "LeoCC: Making Internet Congestion Control Robust to LEO Satellite Dynamics"
+date: 2026-11-10
+paper_authors: "Z. Lai, Z. Li, Q. Wu et al."
+paper_venue: "SIGCOMM 2025"
+paper_url: "https://dl.acm.org/doi/10.1145/3718958.3750491"
+week: 7
+tags: [TCP, congestion control, low-earth orbit satellite network]
+---
+
+## Key Idea
+Geostationary orbit (GEO) satellites stay fixed over one spot at a high orbit, so like wired links their paths have stable capacity and RTT, just with a long delay. Low Earth orbit (LEO) satellites orbit below 2,000 km, which significantly cuts that delay, but they move at about 7.8 km/s relative to the ground, so the path between a Starlink terminal and its ground station keeps changing, along with bandwidth and minimum RTT. Congestion control algorithms (CCAs) built for wired paths, as well as earlier TCP variants for GEO satellites, assume a stable path, so they read these changes as congestion: Cubic, Copa, and BBRv3 underuse the link, while BBRv1 and VIVACE overfill queues. The authors observe that capacity and minimum RTT change in steps at connection reconfigurations, which Starlink performs every 15 seconds and which cause a 45–120 ms outage. LeoCC detects them by pinging the Point of Presence (PoP) every 10 ms and flagging gaps between replies above 45 ms, then discards bandwidth and RTT samples from before the last reconfiguration and re-probes the new path, achieving 85–494% higher throughput than Cubic, Copa, and BBRv3 and 44–56% lower delay than BBRv1 and VIVACE.
+
+## Critique
+The 45 ms threshold and other parameters are set by hand from three residential terminals in clear weather, and they rely on Starlink reconfiguring every 15 seconds with a 45–120 ms outage, which is undocumented and could change. The authors acknowledge this and leave adaptive tuning and terminals on vehicles, planes, and ships to future work, but they do not discuss paths over inter-satellite links, which Starlink uses when a satellite cannot see both the terminal and a ground station. Even in their setup, detection is around 90% accurate, and the paper does not measure the cost of a missed or false detection. An explicit reconfiguration signal from the terminal, which the authors call for, would remove the need to infer it. Lastly, detection depends on how ICMP is queued: Starlink appears to queue ICMP separately from TCP/UDP, so pings to the PoP are not delayed by data traffic. Other satellite operators may queue or rate-limit ICMP differently, which could cause missed or false detections.
+
+## Connections
+LeoCC supports the claim of [McClure et al.](https://drops.dagstuhl.de/entities/document/10.4230/OASIcs.NINeS.2026.12) in [my Week 4 post on congestion signals](/cs440-blog/2026/10/15/no-signal-to-rule-them-all/) that no single signal works everywhere. They found that end-to-end signals do almost as well as in-network ones in datacenters, but in LEO networks loss and delay are misleading, and the useful signal, reconfiguration timing, is available only there. Since satellites cannot be modified, LeoCC infers this signal end-to-end, and the authors' call for terminals to expose it is the same choice switch vendors face about which signals the network should report. LeoCC also fits the HOT framework from [Misa et al.](https://drops.dagstuhl.de/entities/document/10.4230/OASIcs.NINeS.2026.22) in [my Week 1 post on Internet Invariants](/cs440-blog/2026/09/29/internet-invariants/): existing CCAs are tuned for terrestrial paths, where the minimum RTT rarely changes and loss means congestion, and these assumptions break on LEO links. On wired paths, LeoCC falls back to BBR-like behavior. Finally, LeoCC is a Linux kernel TCP module that the authors say could extend to QUIC, the protocol in [my Week 4 post on QUIC deployments](/cs440-blog/2026/10/20/waiting-for-quic/), where congestion control runs in user space and is therefore easier to deploy.
